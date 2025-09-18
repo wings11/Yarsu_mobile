@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "YarSu",
+    "slug": "YarSu",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/YarSu.png",
+    "scheme": "mobile",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package":"com.yarsu.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/YarSu.png",
+        "backgroundColor": "#ffffff",
+        "googleServicesFile": "./google-services.json"
+      },
+      "edgeToEdgeEnabled": true
+      
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/YarSu.png"
+    },
+    "plugins": [
+      "expo-router",
+      "react-native-video",
+      "react-native-edge-to-edge"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "bc5790aa-5573-4eaf-bd30-d1690c2a00af"
+      }
+    }
+  }
+}
