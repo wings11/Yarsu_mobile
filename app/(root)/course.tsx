@@ -9,32 +9,30 @@ import {
   Dimensions,
   Animated,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { styles } from "@/assets/styles/course.styles";
+import { styles as rawStyles } from "@/assets/styles/course.styles";
 import { useCourses } from "@/hooks/useCourses";
 import { formatDate } from "@/libs/utils";
-import { useLanguage } from "@/context/LanguageContext"; // Add language context
-import { labels } from "@/libs/language"; // Add language labels
+import { useLanguage } from "@/context/LanguageContext";
+import { labels } from "@/libs/language";
+const styles = rawStyles as any;
 
-// Define the Course type
+// Define the Course type (matches DB schema)
 type CourseType = {
   id: number;
   name: string;
+  duration: string;
+  price: number; // numeric(10,2) in DB, frontend treats 0 as Free
+  centre_name: string;
   location: string;
   created_at: string;
-  language_required?: boolean;
-  duration?: string;
-  online?: boolean;
-  price?: number;
+  notes?: string | null;
 };
 
 const Course = () => {
-  const router = useRouter();
   const {
     courses,
     selectedCourse,
     showDetails,
-    fetchCourses,
     handleMoreInfo,
     loadCourses,
     setShowDetails,
@@ -48,6 +46,7 @@ const Course = () => {
     setShowDetails: (show: boolean) => void;
   };
   const { language } = useLanguage(); // Add language hook
+  const L = (labels as any)[language] || {};
 
   const slideAnimDetails = useRef(
     new Animated.Value(Dimensions.get("window").height)
@@ -57,6 +56,16 @@ const Course = () => {
   useEffect(() => {
     loadCourses();
   }, [loadCourses]);
+
+  useEffect(() => {
+    // Debug: log courses so we can verify data shape in Metro/device logs
+    try {
+      console.log("[Course screen] courses count:", courses?.length);
+      if (courses && courses.length > 0) console.log("[Course screen] first item:", JSON.stringify(courses[0]));
+    } catch (e) {
+      console.log("[Course screen] failed logging courses", e);
+    }
+  }, [courses]);
 
   useEffect(() => {
     if (showDetails) {
@@ -74,210 +83,130 @@ const Course = () => {
     }
   }, [showDetails, slideAnimDetails, headerHeight]);
 
-  useEffect(() => {
-    console.log(`Course - Current language: ${language}`); // Log language change
-  }, [language]);
+  const renderItem = ({ item }: { item: CourseType }) => {
+    // Defensive access helpers for fields that might have alternate keys
+    const getField = (obj: any, ...keys: string[]) => {
+      for (const k of keys) {
+        if (obj && obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== "") return obj[k];
+      }
+      return null;
+    };
+
+    return (
+      <TouchableOpacity style={styles.card} onPress={() => handleMoreInfo(item)} activeOpacity={0.85}>
+        <View style={styles.cardTop}>
+          <Image
+            source={require("@/assets/images/course.png")}
+            style={styles.cardImage}
+            resizeMode="cover"
+          />
+          <View style={styles.cardMeta}>
+            <Text style={styles.cardTitle} numberOfLines={2} ellipsizeMode="tail">
+              {getField(item, 'name', 'course_name') || (L.coursename || "Untitled Course")}
+            </Text>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+              <Text style={[styles.cardSubtitle, { flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">
+                {getField(item, 'duration', 'course_duration') || (L.duration || 'Duration not set')}
+              </Text>
+              <Text style={[styles.footerText, { fontWeight: '700' }]} numberOfLines={1} ellipsizeMode="tail"> 
+                {(item.price == null || item.price === 0)
+                  ? (L.free || "Free")
+                  : (typeof Intl !== 'undefined'
+                      ? new Intl.NumberFormat().format(Number(item.price))
+                      : String(item.price))}
+              </Text>
+            </View>
+            <Text style={[styles.cardSubtitle, { marginTop: 6 }]} numberOfLines={1} ellipsizeMode="tail">
+              {getField(item, 'location', 'place') || (L.location || 'Location not set')}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
       {courses.length === 0 ? (
-        <Text style={styles.title}>
-          {labels[language].loadingCourses || "Loading courses..."}
-        </Text>
+        <Text style={styles.title}>{L.loadingCourses || "Loading courses..."}</Text>
       ) : (
         <FlatList
           data={courses}
           contentContainerStyle={styles.gridContainer}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => handleMoreInfo(item)}
-            >
-              <View style={styles.textContainer}>
-                <View style={styles.titleContainer}>
-                  <Image
-                    source={require("@/assets/images/course.png")} // Adjust image as needed
-                    style={styles.image}
-                    resizeMode="cover"
-                  />
-                  <Text style={styles.title}>
-                    {""} {item.name}
-                  </Text>
-                </View>
-                <View style={styles.titleContainer}>
-                  <Image
-                    source={require("@/assets/images/calendar.png")} // Adjust image as needed
-                    style={styles.image}
-                    resizeMode="cover"
-                  />
-                  <Text style={styles.title}>
-                    {""}{" "}
-                    {item.duration || labels[language].notAvailable || "N/A"}
-                  </Text>
-                </View>
-                <View style={styles.titleContainer}>
-                  <Image
-                    source={require("@/assets/images/pricetag.png")} // Adjust image as needed
-                    style={styles.image}
-                    resizeMode="cover"
-                  />
-                  <Text style={styles.title}>
-                    {""} {item.price || labels[language].notAvailable || "N/A"}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          )}
-          numColumns={2} // Two-column layout
-          showsVerticalScrollIndicator={false} // Hide scrollbar
-          ListEmptyComponent={
-            <Text>{labels[language].noCourses || "No courses available"}</Text>
-          }
+          renderItem={renderItem}
+          numColumns={1}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={<Text>{L.noCourses || "No courses available"}</Text>}
         />
       )}
 
       {showDetails && (
-        <Animated.View
-          style={[
-            styles.customModalOverlay,
-            { transform: [{ translateY: slideAnimDetails }] },
-          ]}
-        >
+        <Animated.View style={[styles.customModalOverlay, { transform: [{ translateY: slideAnimDetails }] }]}>
           <View style={styles.modalContainer}>
             <View style={styles.customModalContent}>
-              <ScrollView style={styles.modalBody}>
+              <ScrollView style={styles.modalBody} contentContainerStyle={{ paddingBottom: 16 }}>
                 {selectedCourse && (
                   <>
                     <View style={styles.textbox}>
-                      <Image
-                        source={require("@/assets/images/clock.png")}
-                        style={styles.image}
-                        resizeMode="cover"
-                      />
+                      <Image source={require("@/assets/images/clock.png")} style={styles.image} resizeMode="cover" />
                       <View style={styles.textboxContainer}>
-                        <Text>
-                          {labels[language].coursename || "Course Name"}
-                        </Text>
-                        <Text style={styles.modalTitle}>
-                          {selectedCourse.name}
-                        </Text>
+                        <Text>{L.coursename || "Course Name"}</Text>
+                        <Text style={styles.modalTitle}>{selectedCourse.name}</Text>
                       </View>
                     </View>
+
                     <View style={styles.textbox}>
-                      <Image
-                        source={require("@/assets/images/clock.png")}
-                        style={styles.image}
-                        resizeMode="cover"
-                      />
+                      <Image source={require("@/assets/images/clock.png")} style={styles.image} resizeMode="cover" />
                       <View style={styles.textboxContainer}>
-                        <Text>{labels[language].duration || "Duration"}</Text>
-                        <Text style={styles.modalTitle}>
-                          {selectedCourse.duration ||
-                            labels[language].notAvailable ||
-                            "N/A"}
-                        </Text>
+                        <Text>{L.duration || "Duration"}</Text>
+                        <Text style={styles.modalTitle}>{selectedCourse.duration || L.notAvailable || "N/A"}</Text>
                       </View>
                     </View>
+
                     <View style={styles.textbox}>
-                      <Image
-                        source={require("@/assets/images/clock.png")}
-                        style={styles.image}
-                        resizeMode="cover"
-                      />
+                      <Image source={require("@/assets/images/clock.png")} style={styles.image} resizeMode="cover" />
                       <View style={styles.textboxContainer}>
-                        <Text>{labels[language].online || "Online"}</Text>
-                        <Text style={styles.modalTitle}>
-                          {selectedCourse.online
-                            ? labels[language].yes || "Yes"
-                            : labels[language].no || "No"}
-                        </Text>
+                        <Text>{L.courseprice || "Course Fees"}</Text>
+                        <Text style={styles.modalTitle}>{(selectedCourse.price == null || selectedCourse.price === 0) ? (L.free || "Free") : String(selectedCourse.price)}</Text>
                       </View>
                     </View>
+
                     <View style={styles.textbox}>
-                      <Image
-                        source={require("@/assets/images/clock.png")}
-                        style={styles.image}
-                        resizeMode="cover"
-                      />
+                      <Image source={require("@/assets/images/clock.png")} style={styles.image} resizeMode="cover" />
                       <View style={styles.textboxContainer}>
-                        <Text>
-                          {labels[language].courseprice || "Course Fees"}
-                        </Text>
-                        <Text style={styles.modalTitle}>
-                          {selectedCourse.price ||
-                            labels[language].notAvailable ||
-                            "N/A"}
-                        </Text>
+                        <Text>{L.centreName || "Centre Name"}</Text>
+                        <Text style={styles.modalTitle}>{(selectedCourse as any).centre_name || L.notAvailable || "N/A"}</Text>
                       </View>
                     </View>
+
                     <View style={styles.textbox}>
-                      <Image
-                        source={require("@/assets/images/clock.png")}
-                        style={styles.image}
-                        resizeMode="cover"
-                      />
+                      <Image source={require("@/assets/images/clock.png")} style={styles.image} resizeMode="cover" />
                       <View style={styles.textboxContainer}>
-                        <Text>{labels[language].location || "Location"}</Text>
-                        <Text style={styles.modalTitle}>
-                          {selectedCourse.location}
-                        </Text>
+                        <Text>{L.location || "Location"}</Text>
+                        <Text style={styles.modalTitle}>{selectedCourse.location}</Text>
                       </View>
                     </View>
+
                     <View style={styles.textbox}>
-                      <Image
-                        source={require("@/assets/images/clock.png")}
-                        style={styles.image}
-                        resizeMode="cover"
-                      />
+                      <Image source={require("@/assets/images/clock.png")} style={styles.image} resizeMode="cover" />
                       <View style={styles.textboxContainer}>
-                        <Text>
-                          {labels[language].thaiLanguage || "Language Required"}
-                        </Text>
-                        <Text style={styles.modalTitle}>
-                          {selectedCourse.language_required
-                            ? labels[language].yes || "Yes"
-                            : labels[language].no || "No"}
-                        </Text>
+                        <Text>{L.notes || "Notes"}</Text>
+                        <Text style={styles.modalTitle}>{(selectedCourse as any).notes || L.notAvailable || "N/A"}</Text>
                       </View>
                     </View>
+
                     <View style={styles.textbox}>
-                      <Image
-                        source={require("@/assets/images/clock.png")}
-                        style={styles.image}
-                        resizeMode="cover"
-                      />
+                      <Image source={require("@/assets/images/clock.png")} style={styles.image} resizeMode="cover" />
                       <View style={styles.textboxContainer}>
-                        <Text>{labels[language].notes || "Notes"}</Text>
-                        <Text style={styles.modalTitle}>
-                          {selectedCourse.notes ||
-                            labels[language].notAvailable ||
-                            "N/A"}
-                        </Text>
+                        <Text>{L.postedDate || "Posted Date"}</Text>
+                        <Text style={styles.modalTitle}>{formatDate(selectedCourse.created_at)}</Text>
                       </View>
                     </View>
-                    <View style={styles.textbox}>
-                      <Image
-                        source={require("@/assets/images/clock.png")}
-                        style={styles.image}
-                        resizeMode="cover"
-                      />
-                      <View style={styles.textboxContainer}>
-                        <Text>
-                          {labels[language].postedDate || "Posted Date"}
-                        </Text>
-                        <Text style={styles.modalTitle}>
-                          {formatDate(selectedCourse.created_at)}
-                        </Text>
-                      </View>
-                    </View>
-                    <TouchableOpacity
-                      style={styles.closeButton}
-                      onPress={() => setShowDetails(false)}
-                    >
-                      <Text style={styles.buttonText}>
-                        {labels[language].contact || "Contact"}
-                      </Text>
+
+                    <TouchableOpacity style={styles.closeButton} onPress={() => setShowDetails(false)}>
+                      <Text style={styles.buttonText}>{L.contact || "Contact"}</Text>
                     </TouchableOpacity>
                   </>
                 )}
@@ -288,6 +217,7 @@ const Course = () => {
       )}
     </View>
   );
+
 };
 
 export default Course;

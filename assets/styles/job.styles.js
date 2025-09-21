@@ -2,6 +2,34 @@ import { StyleSheet } from "react-native";
 import { COLORS } from "@/constants/colors";
 
 export const styles = StyleSheet.create({
+  subtitle: {
+    fontSize: 13,
+    color: COLORS.text,
+    fontWeight: "400",
+    marginTop: 2,
+  },
+  modalRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+    width: "100%",
+    justifyContent: "space-between",
+  },
+  modalLabel: {
+    fontSize: 14,
+    color: COLORS.primary,
+    fontWeight: "600",
+    width: "40%",
+    textAlign: "right",
+    marginRight: 8,
+  },
+  modalValue: {
+    fontSize: 14,
+    color: COLORS.black, // changed from yellow for better contrast on modal backgrounds
+    fontWeight: "400",
+    width: "60%",
+    textAlign: "left",
+  },
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
@@ -161,6 +189,62 @@ export const styles = StyleSheet.create({
     alignSelf: "center",
     position: "absolute",
     top: 0,
+  },
+  // Safe area wrapper padding for iOS (Dynamic Island / notch)
+  safeAreaTop: {
+    paddingTop: 18,
+    width: "100%",
+    backgroundColor: "transparent",
+  },
+  mediaVideo: {
+    width: 300,
+    height: 180,
+    borderRadius: 8,
+    margin: 5,
+    backgroundColor: COLORS.black,
+  },
+  modalCloseButton: {
+    position: "absolute",
+    right: 12,
+    top: 12,
+    padding: 8,
+    borderRadius: 16,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    zIndex: 20,
+  },
+  modalCloseText: {
+    color: COLORS.white,
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  mediaThumbnail: {
+    width: 300,
+    height: 180,
+    borderRadius: 8,
+    margin: 5,
+    backgroundColor: COLORS.lightgray,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playOverlay: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 300,
+    height: 180,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.25)'
+  },
+  playIcon: {
+    fontSize: 36,
+    color: COLORS.white,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    width: 300,
+    height: 180,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   customModalContentblue: {
     borderBottomLeftRadius: 20,

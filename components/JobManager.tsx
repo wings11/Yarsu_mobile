@@ -9,6 +9,7 @@ import {
   Alert,
   Switch,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { useJobs } from '../hooks/useJobs';
 import { styles } from '../assets/styles/adminstyles/AddButtonStyles';
@@ -58,7 +59,7 @@ export default function JobManager() {
   const { language } = useLanguage();
   const { jobs, loadJobs, addJob, updateJob, deleteJob, loading } = useJobs();
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [formData, setFormData] = useState(defaultFormData);
 
   useEffect(() => {
@@ -71,26 +72,9 @@ export default function JobManager() {
     setModalVisible(false);
   };
 
-  const handleEdit = (job: Job) => {
-    setEditingJob(job);
-    setFormData({
-      job_num: job.job_num || '',
-      title: job.title,
-      pinkcard: job.pinkcard,
-      thai: job.thai,
-      payment_type: job.payment_type ?? true,
-      job_date: job.job_date || '',
-      payment: job.payment ?? null,
-      pay_amount: job.pay_amount ?? '',
-      accept_amount: job.accept_amount ?? '',
-      treat: Boolean(job.treat),
-      accept: job.accept ?? '',
-      stay: job.stay,
-      location: job.location,
-      job_location: job.job_location,
-      notes: job.notes || '',
-      media: job.media || [],
-    });
+  // Minimalist job details modal
+  const handleShowDetails = (job: Job) => {
+    setSelectedJob(job);
     setModalVisible(true);
   };
 
@@ -219,241 +203,72 @@ export default function JobManager() {
         </TouchableOpacity>
       </View>
 
-      {/* Jobs List */}
+      {/* Minimalist Jobs List */}
       <ScrollView style={styles.jobsList}>
         {jobs.map((job) => (
-          <View key={job.id} style={styles.jobCard}>
-            <View style={styles.jobHeader}>
-              <Text style={styles.jobTitle}>
-                {job.job_num ? `[${job.job_num}] ` : ''}{job.title}
-              </Text>
-              <View style={styles.jobActions}>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() => handleEdit(job)}
-                >
-                  <Text style={styles.editButtonText}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => handleDelete(job.id)}
-                >
-                  <Text style={styles.deleteButtonText}>Delete</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            
-            <Text style={styles.jobLocation}>📍 {job.job_location}</Text>
-            {job.notes && <Text style={styles.jobNotes}>{job.notes}</Text>}
-            
-            <View style={styles.jobDetails}>
-              {job.pay_amount && <Text>💰 {job.pay_amount} ฿</Text>}
-              {job.accept_amount && <Text>👥 {job.accept_amount} people</Text>}
-              {job.job_date && <Text>📅 {new Date(job.job_date).toLocaleDateString()}</Text>}
-            </View>
-
-            <View style={styles.jobTags}>
-              {job.pinkcard && <Text style={styles.tag}>Pink Card</Text>}
-              {job.thai && <Text style={styles.tag}>Thai</Text>}
-              {job.stay && <Text style={styles.tag}>Stay</Text>}
-              {job.treat && <Text style={styles.tag}>Treat</Text>}
-            </View>
-          </View>
+          <TouchableOpacity
+            key={job.id}
+            style={[styles.jobCard, { padding: 16, marginBottom: 12, borderRadius: 10, backgroundColor: '#fff', elevation: 2 }]}
+            onPress={() => handleShowDetails(job)}
+          >
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 4 }}>
+              {job.title}
+            </Text>
+            <Text style={{ color: '#888', marginBottom: 2 }}>
+              {job.job_num ? `Job No: ${job.job_num}` : ''}
+            </Text>
+            <Text style={{ color: '#888', marginBottom: 2 }}>
+              {job.job_date ? `Date: ${job.job_date}` : ''}
+            </Text>
+            <Text style={{ color: '#888', marginBottom: 2 }}>
+              {job.job_location ? `Location: ${job.job_location}` : ''}
+            </Text>
+          </TouchableOpacity>
         ))}
       </ScrollView>
 
-      {/* Job Form Modal */}
+      {/* Minimalist Job Details Modal */}
       <Modal
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={resetForm}
+        onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <ScrollView contentContainerStyle={styles.modalBodyContent}>
-              <Text style={styles.modalTitle}>
-                {editingJob ? 'Edit Job' : 'Add New Job'}
-              </Text>
-
-              {/* Job Number and Date */}
-              <View style={styles.row}>
-                <View style={styles.halfInput}>
-                  <Text style={styles.label}>Job Number</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={formData.job_num}
-                    onChangeText={(text) => updateFormData({ job_num: text })}
-                    placeholder="Optional"
-                  />
-                </View>
-                <View style={styles.halfInput}>
-                  <Text style={styles.label}>Job Date</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={formData.job_date}
-                    onChangeText={(text) => updateFormData({ job_date: text })}
-                    placeholder="YYYY-MM-DD"
-                  />
-                </View>
-              </View>
-
-              {/* Title */}
-              <Text style={styles.label}>Job Title *</Text>
-              <TextInput
-                style={styles.input}
-                value={formData.title}
-                onChangeText={(text) => updateFormData({ title: text })}
-                placeholder="Enter job title"
-              />
-
-              {/* Job Location */}
-              <Text style={styles.label}>Job Location *</Text>
-              <TextInput
-                style={styles.input}
-                value={formData.job_location}
-                onChangeText={(text) => updateFormData({ job_location: text })}
-                placeholder="Specific work location"
-              />
-
-              {/* Payment Details */}
-              <View style={styles.row}>
-                <View style={styles.halfInput}>
-                  <Text style={styles.label}>Payment Type</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={formData.payment || ''}
-                    onChangeText={(text) => updateFormData({ payment: text })}
-                    placeholder="Daily, Monthly, etc."
-                  />
-                </View>
-                <View style={styles.halfInput}>
-                  <Text style={styles.label}>Pay Amount (Baht)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={String(formData.pay_amount || '')}
-                    onChangeText={(text) => updateFormData({ pay_amount: text })}
-                    placeholder="500-1000"
-                    keyboardType="numeric"
-                  />
-                </View>
-              </View>
-
-              {/* Accept Amount and Accept Text */}
-              <View style={styles.row}>
-                <View style={styles.halfInput}>
-                  <Text style={styles.label}>Number of Workers</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={String(formData.accept_amount || '')}
-                    onChangeText={(text) => updateFormData({ accept_amount: text })}
-                    placeholder="Number of people"
-                    keyboardType="numeric"
-                  />
-                </View>
-                <View style={styles.halfInput}>
-                  <Text style={styles.label}>Accept</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={formData.accept}
-                    onChangeText={(text) => updateFormData({ accept: text })}
-                    placeholder="Couples welcome, etc."
-                  />
-                </View>
-              </View>
-
-              {/* Checkboxes */}
-              <View style={styles.checkboxContainer}>
-                <View style={styles.checkboxRow}>
-                  <Switch
-                    value={formData.pinkcard}
-                    onValueChange={(value) => updateFormData({ pinkcard: value })}
-                  />
-                  <Text style={styles.checkboxLabel}>Pink Card Required</Text>
-                </View>
-
-                <View style={styles.checkboxRow}>
-                  <Switch
-                    value={formData.thai}
-                    onValueChange={(value) => updateFormData({ thai: value })}
-                  />
-                  <Text style={styles.checkboxLabel}>Thai Language</Text>
-                </View>
-
-                <View style={styles.checkboxRow}>
-                  <Switch
-                    value={formData.stay}
-                    onValueChange={(value) => updateFormData({ stay: value })}
-                  />
-                  <Text style={styles.checkboxLabel}>Accommodation Provided</Text>
-                </View>
-
-                <View style={styles.checkboxRow}>
-                  <Switch
-                    value={formData.treat}
-                    onValueChange={(value) => updateFormData({ treat: value })}
-                  />
-                  <Text style={styles.checkboxLabel}>Meals Provided</Text>
-                </View>
-              </View>
-
-              {/* Location if stay is true */}
-              {formData.stay && (
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.15)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ width: '90%', minHeight: 320, backgroundColor: '#fff', borderRadius: 16, padding: 20, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 8 }}>
+            <ScrollView contentContainerStyle={{ paddingBottom: 16 }}>
+              {selectedJob && (
                 <>
-                  <Text style={styles.label}>Accommodation Location *</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={formData.location}
-                    onChangeText={(text) => updateFormData({ location: text })}
-                    placeholder="Accommodation address"
-                  />
+                  <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 8 }}>{selectedJob.title}</Text>
+                  <Text style={{ color: '#888', marginBottom: 2 }}>{selectedJob.job_num ? `Job No: ${selectedJob.job_num}` : ''}</Text>
+                  <Text style={{ color: '#888', marginBottom: 2 }}>{selectedJob.job_date ? `Date: ${selectedJob.job_date}` : ''}</Text>
+                  <Text style={{ color: '#888', marginBottom: 2 }}>{selectedJob.job_location ? `Location: ${selectedJob.job_location}` : ''}</Text>
+                  {selectedJob.notes ? (
+                    <Text style={{ marginTop: 12, fontSize: 15, color: '#222', marginBottom: 8 }}>{selectedJob.notes}</Text>
+                  ) : null}
+                  {/* Minimalist: show only main content above, media below */}
+                  {selectedJob.media && selectedJob.media.length > 0 && (
+                    <View style={{ marginTop: 18 }}>
+                      <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>Media</Text>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: 'row' }}>
+                        {selectedJob.media.map((uri, idx) => (
+                          uri.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                            <Image key={idx} source={{ uri }} style={{ width: 120, height: 120, borderRadius: 10, marginRight: 10, backgroundColor: '#eee' }} />
+                          ) : uri.match(/\.(mp4|mov|webm|ogg)$/i) ? (
+                            <View key={idx} style={{ width: 120, height: 120, borderRadius: 10, marginRight: 10, backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center' }}>
+                              <Text style={{ fontSize: 12, color: '#666' }}>Video</Text>
+                              {/* You can use expo-av Video here for actual playback */}
+                            </View>
+                          ) : null
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
                 </>
               )}
-
-              {/* Notes */}
-              <Text style={styles.label}>Notes</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                value={formData.notes}
-                onChangeText={(text) => updateFormData({ notes: text })}
-                placeholder="Additional information"
-                multiline
-                numberOfLines={3}
-              />
-
-              {/* Media */}
-              <Text style={styles.label}>Media</Text>
-              <TouchableOpacity style={styles.mediaButton} onPress={pickImage}>
-                <Text style={styles.mediaButtonText}>Add Image/Video</Text>
+              <TouchableOpacity style={{ marginTop: 18, alignSelf: 'center' }} onPress={() => setModalVisible(false)}>
+                <Text style={{ color: '#007AFF', fontWeight: 'bold', fontSize: 16 }}>Close</Text>
               </TouchableOpacity>
-
-              {formData.media.length > 0 && (
-                <ScrollView horizontal style={styles.mediaPreview}>
-                  {formData.media.map((uri, index) => (
-                    <View key={index} style={styles.mediaItem}>
-                      <Image source={{ uri }} style={styles.mediaImage} />
-                      <TouchableOpacity
-                        style={styles.removeMediaButton}
-                        onPress={() => removeMedia(index)}
-                      >
-                        <Text style={styles.removeMediaText}>×</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </ScrollView>
-              )}
-
-              {/* Buttons */}
-              <View style={styles.modalButtons}>
-                <TouchableOpacity style={styles.cancelButton} onPress={resetForm}>
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
-                  <Text style={styles.saveButtonText}>
-                    {editingJob ? 'Update' : 'Save'} Job
-                  </Text>
-                </TouchableOpacity>
-              </View>
             </ScrollView>
           </View>
         </View>

@@ -3,9 +3,9 @@
   "compilerOptions": {
     "strict": true,
     "target": "esnext",
-    "module": "esnext",
+  "module": "Node16",
     "jsx": "react-native",
-    "moduleResolution": "node",
+  "moduleResolution": "node16",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

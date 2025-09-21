@@ -462,7 +462,15 @@ const MainAddButton = () => {
     value: CourseType[K] | string
   ) => {
     if (field === "price") {
-      const cleanedValue = value.toString().replace(/[^0-9]/g, "");
+      // allow decimals and at most two decimal places
+      let cleanedValue = value.toString().replace(/[^0-9.]/g, "");
+      // keep first dot only
+      const parts = cleanedValue.split(".");
+      if (parts.length > 2) {
+        cleanedValue = parts[0] + "." + parts.slice(1).join("");
+      }
+      // limit to two decimals
+      cleanedValue = cleanedValue.replace(/^(\d+)(\.\d{0,2})?.*$/, (m, p1, p2) => p1 + (p2 || ""));
       setNewCourse((prev) => ({
         ...prev,
         [field]: cleanedValue,
@@ -911,12 +919,15 @@ const MainAddButton = () => {
     }
 
     try {
+      // Convert price to numeric; if left blank treat as 0.00 (free)
+      const parsedPrice = newCourse.price === undefined || newCourse.price === null || newCourse.price === ""
+        ? 0.0
+        : parseFloat(String(newCourse.price));
+
       const convertedCourse: Partial<CourseType> = {
         name: newCourse.name?.trim(),
         duration: newCourse.duration?.trim(),
-        price: newCourse.price
-          ? parseInt(newCourse.price.toString())
-          : undefined,
+        price: isNaN(parsedPrice) ? 0.0 : Number(parsedPrice.toFixed(2)),
         centre_name: newCourse.centre_name?.trim(),
         location: newCourse.location?.trim(),
       };
@@ -930,15 +941,6 @@ const MainAddButton = () => {
         throw new Error(
           labels[language].requiredFields ||
             "Name, Duration, Centre Name, and Location are required"
-        );
-      }
-
-      if (
-        convertedCourse.price !== undefined &&
-        (isNaN(convertedCourse.price) || convertedCourse.price <= 0)
-      ) {
-        throw new Error(
-          labels[language].invalidPrice || "Price must be a positive number"
         );
       }
 

@@ -4,7 +4,7 @@ import { COLORS } from "@/constants/colors";
 const windowWidth = Dimensions.get("window").width;
 const numColumns = 4;
 const cardMargin = 10;
-const containerPadding = 15;
+const containerPadding = 0;
 const cardWidth =
   (windowWidth - containerPadding * 2 - cardMargin * (numColumns + 1)) /
   numColumns;
@@ -18,7 +18,7 @@ export const styles = StyleSheet.create({
   gridContainer: {
     marginTop: 10,
     rowGap: 20,
-    margin: "70",
+    margin: 0,
   },
   card: {
     width: cardWidth,
@@ -43,12 +43,16 @@ export const styles = StyleSheet.create({
     flexDirection: "column",
     padding: 5,
     gap: 2,
+    width: '100%',
   },
   title: {
     fontSize: 12,
     fontWeight: "400",
     color: COLORS.black,
     fontFamily: "SF Pro",
+    flexShrink: 1,
+    flexWrap: 'wrap',
+    includeFontPadding: false,
   },
   ratingContainer: {
     flexDirection: "row",
@@ -62,6 +66,9 @@ export const styles = StyleSheet.create({
   },
   logoContainer: {
     flexDirection: "row",
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    width: '100%'
   },
   star: {
     fontSize: 18,
@@ -85,12 +92,15 @@ export const styles = StyleSheet.create({
     letterSpacing: 0.12,
 
     fontStyle: "normal",
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.black,
-    width: "auto",
-    padding: 5,
-    height: 60,
+    // Render notes as plain inline text — no background, no border, auto height
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    borderColor: 'transparent',
+    width: '100%',
+    padding: 0,
+    height: 'auto',
+    flexShrink: 1,
+    flexWrap: 'wrap',
   },
   detailText: {
     fontSize: 12,
@@ -100,6 +110,8 @@ export const styles = StyleSheet.create({
     letterSpacing: 0.12,
     fontStyle: "normal",
     marginTop: 5,
+    flexShrink: 1,
+    flexWrap: 'wrap',
   },
   cardTitle: {
     flexDirection: "column",
@@ -122,15 +134,16 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 120,
+    // allow modal to start lower on screen for safe area but let it use most of the screen
+    paddingTop: 40,
   },
   modalContent: {
-    width: "80%",
-    maxHeight: "80%",
-    backgroundColor: "rgba(248, 249, 250, 0.80)",
+    width: "95%",
+    maxHeight: "92%",
+    backgroundColor: "rgba(248, 249, 250, 0.95)",
     borderRadius: 12,
-    padding: 20,
-    alignItems: "center",
+    padding: 16,
+    alignItems: "stretch",
   },
   closeButton: {
     position: "absolute",
@@ -211,4 +224,15 @@ export const styles = StyleSheet.create({
     fontFamily: "SF Pro",
     fontWeight: "400",
   },
+  iconClose: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 10,
+    backgroundColor: 'transparent'
+  },
+  modalMediaContainer: {
+    width: '100%',
+    paddingTop: 12,
+  }
 });

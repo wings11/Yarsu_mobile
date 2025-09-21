@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import { supabase } from '../libs/supabase';
 import { decode as atob } from 'base-64';
-import RNBlobUtil from 'react-native-blob-util';
 import * as SecureStore from "expo-secure-store";
 import { useRouter } from "expo-router";
 
@@ -127,51 +126,64 @@ export const useJobs = () => {
     }
   }, []);
 
-  // Helper: upload image or video file to Supabase 'images' bucket using react-native-blob-util
-  const uploadMediaToSupabase = async (fileUri, filename, type = 'image') => {
-    // fileUri: local file URI from picker
-    const fileExt = filename.split('.').pop() || (type === 'image' ? 'jpg' : 'mp4');
-    const contentType = type === 'image' ? `image/${fileExt}` : `video/${fileExt}`;
-    const path = `images/${Date.now()}-${Math.floor(Math.random()*10000)}.${fileExt}`;
-    // Supabase Storage REST API endpoint
-    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-    const uploadUrl = `${supabaseUrl}/storage/v1/object/images/${path}`;
-    // Upload file using RNBlobUtil
-    const res = await RNBlobUtil.fetch('POST', uploadUrl, {
-      'Authorization': `Bearer ${supabaseKey}`,
-      'Content-Type': contentType,
-      'x-upsert': 'true',
-    }, RNBlobUtil.wrap(fileUri));
-    if (res.info().status !== 200 && res.info().status !== 201) {
-      throw new Error('Upload failed: ' + res.info().status);
+  // Helper: upload base64 image or video to Supabase 'images' bucket and return public URL
+  const uploadMediaToSupabase = async (base64, filename, type = 'image') => {
+    // Remove data:image/...;base64, or data:video/...;base64, prefix
+    let base64Data = base64;
+    let contentType = 'image/jpeg';
+    if (type === 'image') {
+      base64Data = base64.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+      contentType = `image/${filename.split('.').pop() || 'jpeg'}`;
+    } else if (type === 'video') {
+      base64Data = base64.replace(/^data:video\/(mp4|mov|webm|ogg);base64,/, "");
+      contentType = `video/${filename.split('.').pop() || 'mp4'}`;
     }
-    // Get public URL
-    return `${supabaseUrl}/storage/v1/object/public/images/${path}`;
+    // Decode base64 to binary string
+    const binaryString = atob(base64Data);
+    // Convert binary string to Uint8Array
+    const byteArray = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      byteArray[i] = binaryString.charCodeAt(i);
+    }
+    const fileExt = filename.split('.').pop() || (type === 'image' ? 'jpg' : 'mp4');
+    const path = `images/${Date.now()}-${Math.floor(Math.random()*10000)}.${fileExt}`;
+    const { error } = await supabase.storage.from('images').upload(path, byteArray, {
+      contentType,
+      upsert: true,
+    });
+    if (error) throw error;
+    const { data } = supabase.storage.from('images').getPublicUrl(path);
+    return data.publicUrl;
   };
 
   const addJob = useCallback(async (newJob) => {
     try {
-      // Process media: upload images/videos using file URI, keep URLs
+      // Process media: upload base64 images/videos to 'images' bucket, keep URLs
       let mediaUrls = [];
       if (Array.isArray(newJob.media)) {
         for (let i = 0; i < newJob.media.length; i++) {
           const item = newJob.media[i];
-          // If item is a local file URI (starts with file://), upload
-          if (typeof item === 'string' && item.startsWith('file://')) {
-            // Guess type by extension
-            const ext = item.split('.').pop().toLowerCase();
-            const isImage = ['jpg','jpeg','png','webp'].includes(ext);
-            const isVideo = ['mp4','mov','webm','ogg'].includes(ext);
-            const filename = `jobmedia_${Date.now()}_${i}.${ext}`;
+          if (typeof item === 'string' && item.startsWith('data:image')) {
+            // Image
+            const ext = item.substring(item.indexOf('/')+1, item.indexOf(';')) || 'jpg';
+            const filename = `jobimg_${Date.now()}_${i}.${ext}`;
             try {
-              const url = await uploadMediaToSupabase(item, filename, isImage ? 'image' : (isVideo ? 'video' : 'image'));
+              const url = await uploadMediaToSupabase(item, filename, 'image');
               mediaUrls.push(url);
             } catch (err) {
-              console.error('Media upload failed:', err.message);
+              console.error('Image upload failed:', err.message);
+            }
+          } else if (typeof item === 'string' && item.startsWith('data:video')) {
+            // Video
+            const ext = item.substring(item.indexOf('/')+1, item.indexOf(';')) || 'mp4';
+            const filename = `jobvid_${Date.now()}_${i}.${ext}`;
+            try {
+              const url = await uploadMediaToSupabase(item, filename, 'video');
+              mediaUrls.push(url);
+            } catch (err) {
+              console.error('Video upload failed:', err.message);
             }
           } else if (typeof item === 'string') {
-            // Already a URL or base64 string, just push
             mediaUrls.push(item);
           }
         }

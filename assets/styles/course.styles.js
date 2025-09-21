@@ -8,19 +8,21 @@ export const styles = StyleSheet.create({
     padding: 15,
   },
   gridContainer: {
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     marginTop: 10,
-    rowGap: 10,
+    paddingHorizontal: 8,
+    paddingBottom: 8,
   },
   card: {
-    width: "45%",
-
+    width: "100%",
+    alignSelf: "stretch",
     height: "auto",
-    padding: 12,
+    padding: 14,
+    paddingRight: 18, // give some extra right padding so right-most text isn't clipped
     backgroundColor: COLORS.white,
     borderRadius: 24,
     marginBottom: 10,
-    marginHorizontal: 10,
+    marginHorizontal: 0,
     shadowColor: COLORS.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -33,7 +35,7 @@ export const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: "400",
-    color: COLORS.background,
+    color: COLORS.text,
     flexWrap: "wrap",
     textAlignVertical: "top",
     marginLeft: 12,
@@ -74,7 +76,7 @@ export const styles = StyleSheet.create({
   textContainer: {
     flexDirection: "column",
     gap: 5,
-    width: "90%",
+    width: "100%",
     justifyContent: "flex-start", // Start content from the top
     alignItems: "flex-start",
   },
@@ -97,10 +99,10 @@ export const styles = StyleSheet.create({
     alignVertical: "top",
   },
   detailsContainer: {
-    paddingRight: 22,
+    paddingRight: 8,
     flexDirection: "column",
-    width: "30%",
-    alignItems: "flex-end",
+    width: "40%",
+    alignItems: "flex-start",
   },
   customModalOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -125,9 +127,55 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     width: "100%",
     margin: "auto",
-    height: 60,
+    // allow variable height so long text wraps and is visible
+    minHeight: 40,
+    paddingVertical: 6,
   },
   modalBody: {
     maxHeight: "100%",
+    paddingBottom: 12,
   },
+  /* new styles used by updated Course component */
+  cardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  cardImage: {
+    width: 72,
+    height: 72,
+    borderRadius: 12,
+    marginRight: 12,
+    backgroundColor: COLORS.gray,
+  },
+  cardMeta: {
+    flex: 1,
+    paddingRight: 6,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: COLORS.black || COLORS.text,
+    marginBottom: 4,
+  },
+  cardSubtitle: {
+    fontSize: 12,
+    color: COLORS.textLight || COLORS.black,
+    marginBottom: 6,
+  },
+  cardFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 12,
+    color: COLORS.textLight || COLORS.black,
+    minWidth: 64, // allow up to 5-6 digit prices without clipping
+    flexShrink: 0,
+    paddingHorizontal: 6,
+    textAlign: 'right',
+    marginLeft: 8,
+    zIndex: 2,
+  }
 });

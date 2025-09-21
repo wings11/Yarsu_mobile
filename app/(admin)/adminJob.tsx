@@ -219,7 +219,7 @@ const AdminJob = () => {
           )}
         </View>
         <View style={styles.fieldRow}>
-          <Text style={styles.label}>Job Num:</Text>
+          <Text style={styles.label}>အလုပ်နံပါတ်</Text>
           {editMode[item.id] ? (
             <TextInput
               style={styles.input}
@@ -244,7 +244,7 @@ const AdminJob = () => {
           )}
         </View>
         <View style={styles.fieldRow}>
-          <Text style={styles.label}>Job Location:</Text>
+          <Text style={styles.label}>အလုပ်နေရာ</Text>
           {editMode[item.id] ? (
             <TextInput
               style={styles.input}
@@ -256,7 +256,7 @@ const AdminJob = () => {
           )}
         </View>
         <View style={styles.fieldRow}>
-          <Text style={styles.label}>Payment Type:</Text>
+          <Text style={styles.label}>ငွေပေးချေပုံ</Text>
           {editMode[item.id] ? (
             <TextInput
               style={styles.input}
@@ -269,7 +269,7 @@ const AdminJob = () => {
           )}
         </View>
         <View style={styles.fieldRow}>
-          <Text style={styles.label}>Pay Amount:</Text>
+          <Text style={styles.label}>လစာ</Text>
           {editMode[item.id] ? (
             <TextInput
               style={styles.input}
@@ -282,7 +282,7 @@ const AdminJob = () => {
           )}
         </View>
         <View style={styles.fieldRow}>
-          <Text style={styles.label}>Accept Amount:</Text>
+          <Text style={styles.label}>လက်ခံသည့်ဦးရေ</Text>
           {editMode[item.id] ? (
             <TextInput
               style={styles.input}
