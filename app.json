@@ -2,7 +2,7 @@
   "expo": {
     "name": "YarSu",
     "slug": "yarsu",
-    "version": "0.1.0",
+    "version": "0.3.0",
     "orientation": "portrait",
     "icon": "./assets/images/YarSu.png",
     "scheme": "mobile",
@@ -17,7 +17,7 @@
     },
     "android": {
       "package": "com.yarsu.app",
-      "versionCode": 1,
+      "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/YarSu.png",
         "backgroundColor": "#ffffff",
