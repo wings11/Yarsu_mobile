@@ -31,6 +31,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     borderColor: "rgba(44, 44, 44, 0.2)",
     borderWidth: 1,
+    overflow: 'visible', // ensure text isn't clipped by rounded corners
   },
   title: {
     fontSize: 14,
@@ -111,6 +112,14 @@ export const styles = StyleSheet.create({
     zIndex: 1000,
     display: "flex",
   },
+  customModalOverlayDev: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.15)",
+    zIndex: 1000,
+    display: "flex",
+    pointerEvents: 'none',
+  },
   customModalContent: {
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
@@ -120,8 +129,8 @@ export const styles = StyleSheet.create({
     padding: 23,
     width: "100%",
     alignSelf: "center",
-    position: "absolute",
-    top: 0,
+    // Make this relative so the overlay's justifyContent controls placement
+    position: "relative",
   },
   textbox: {
     flexDirection: "row",
@@ -140,6 +149,22 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  priceBadge: {
+    position: 'absolute',
+    right: 16,
+    top: 16,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(44,44,44,0.08)',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 1 },
+    zIndex: 20,
+  },
   cardImage: {
     width: 72,
     height: 72,
@@ -154,12 +179,12 @@ export const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: COLORS.black || COLORS.text,
+    color: '#111111', // force high-contrast title color (overrides theme if needed)
     marginBottom: 4,
   },
   cardSubtitle: {
     fontSize: 12,
-    color: COLORS.textLight || COLORS.black,
+    color: '#4a4a4a', // ensure subtitle/duration is visible against white card
     marginBottom: 6,
   },
   cardFooter: {
@@ -170,12 +195,8 @@ export const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: COLORS.textLight || COLORS.black,
-    minWidth: 64, // allow up to 5-6 digit prices without clipping
-    flexShrink: 0,
+    color: '#111111',
+    flexShrink: 1,
     paddingHorizontal: 6,
-    textAlign: 'right',
-    marginLeft: 8,
-    zIndex: 2,
   }
 });
